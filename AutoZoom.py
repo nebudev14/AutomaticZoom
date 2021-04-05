@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QLabel
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot, QObject, QThread, pyqtSignal
 
@@ -6,6 +6,13 @@ import webbrowser
 import schedule
 import time
 import sys
+
+def open_class(url):
+    webbrowser.register('chrome', None, webbrowser.BackgroundBrowser("C://Program Files (x86)//Google//Chrome//Application//chrome.exe"))
+    webbrowser.get('chrome').open(url)
+
+
+schedule.every().day.at("16:50").do(open_class, 'https://us02web.zoom.us/j/87540413095?pwd=NUg1a3c4MlRHZ1VXREpRcmt2WWZDdz09')
 
 # thread running all pending scheduled classes
 class Worker(QObject):
@@ -31,17 +38,23 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
+        name_label = QLabel("Class Name", self)
+        name_label.move(20, 20)
         self.name = QLineEdit(self)
-        self.name.move(20, 20)
-        self.name.resize(280, 40)
+        self.name.move(20, 35)
+        self.name.resize(280, 30)
 
+        time_label = QLabel("Class Time", self)
+        time_label.move(20, 90)
         self.time = QLineEdit(self)
-        self.time.move(20, 90)
-        self.time.resize(280, 40)
+        self.time.move(20, 105)
+        self.time.resize(280, 30)
 
+        link_label = QLabel("Class Link", self)
+        link_label.move(20, 160)
         self.link = QLineEdit(self)
-        self.link.move(20, 160)
-        self.link.resize(280, 40)
+        self.link.move(20, 175)
+        self.link.resize(280, 30)
 
         # send button
         button = QPushButton("Schedule", self)
