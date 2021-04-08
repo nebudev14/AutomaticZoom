@@ -5,6 +5,7 @@ Automatically opens your zoom meetings/google meets at specific times.
 * Written in Python
 * Uses schedule module and PyQT5 for the GUI
 * Runs the same schedule every day
+* User must have Chrome, and Chrome application must be in the path "C://Program Files (x86)//Google//Chrome//Application//chrome.exe"
 
 ### [Latest Release](https://github.com/NebuDev14/AutomaticZoom/releases/tag/v1.0) 
 
