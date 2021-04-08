@@ -34,7 +34,6 @@ class App(QWidget):
         self.top = 10
         self.width = 700
         self.height = 500
-        self.classes = []
         self.initUI()
         self.schedule_thread()
 
@@ -60,15 +59,18 @@ class App(QWidget):
         self.link = QLineEdit(self)
         self.link.move(20, 175)
         self.link.resize(280, 30)
+        
+       # scheduled classes
+        self.scheduled_classes_label = QLabel("", self)
+        self.scheduled_classes_label.move(475, 20)
 
-        # send button
+        # schedule button
         button = QPushButton("Schedule", self)
         button.setToolTip("Adds the class to your schedule")
         button.move(20, 220)
         button.clicked.connect(self.on_click)
 
         self.UIComponents()
-
         self.show()
 
     # connecting GUI to worker thread
@@ -78,7 +80,9 @@ class App(QWidget):
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.thread.start()
+    # adds combo box to GUI
     def UIComponents(self):
+        # combo box
         self.combo_box = boxSelect(self)
         self.combo_box.setGeometry(200, 150, 50, 30)
         self.combo_box.move(310, 105)
@@ -96,35 +100,38 @@ class App(QWidget):
         final_link = self.link.text() # zoom/google meets link of class that gets added to schedule
         class_time = str(self.combo_box.currentText()) # morning or afternoon (AM or PM)
         time_num = "" # time of class that gets added to schedule
-
-        time_text = self.time.text() # gets raw time 
-        if len(self.time.text()) == 4: # adds a 0 at the beginning of the time if it only has 3 digits (1:40 becomes 01:40)
-            time_text = "0" + time_text
-        first_digits = time_text[0] + time_text[1] # first two digits of time
-        last_digits = time_text[-2] + time_text[-1]  # last two digits of time
-
-        if class_time == "PM": # adds 12 hours to selected time if class starts in the afternoon
-            if first_digits == "12":
-                time_num = first_digits + ":" + last_digits
+        try:
+            time_text = self.time.text() # gets raw time 
+            if len(self.time.text()) == 4: # adds a 0 at the beginning of the time if it only has 3 digits (1:40 becomes 01:40)
+                time_text = "0" + time_text
+            first_digits = time_text[0] + time_text[1] # first two digits of time
+            last_digits = time_text[-2] + time_text[-1]  # last two digits of time
+            if class_time == "PM": # adds 12 hours to selected time if class starts in the afternoon
+                if first_digits == "12":
+                    time_num = first_digits + ":" + last_digits
+                else:
+                    new_first_digits = str(int(first_digits) + 12)
+                    time_num = new_first_digits + ":" + last_digits
             else:
-                new_first_digits = str(int(first_digits) + 12)
-                time_num = new_first_digits + ":" + last_digits
-        else:
-            # sets 12 AM to 00:00 AM
-            if first_digits == "12":
-                first_digits = "00"
-            time_num = first_digits + ":" + last_digits
-        
-        print(final_name)
-        print(final_link)
-        print(time_num)
-        schedule.every().day.at(time_num).do(self.open_class, final_link)
-        self.classes.append(zoomClass(final_name, final_link, time_num))
-        print(self.classes)
-        self.name.setText("")
-        self.time.setText("")
-        self.link.setText("")
-        
+                # sets 12 AM to 00:00 AM
+                if first_digits == "12":
+                    first_digits = "00"
+                time_num = first_digits + ":" + last_digits
+            display_time = self.time.text() + class_time # shows time in normal format
+            schedule.every().day.at(time_num).do(self.open_class, final_link) # schedules class
+            
+            # updates scheduled classes display
+            prev_text = str(self.scheduled_classes_label.text())
+            self.scheduled_classes_label.setText("")
+            new_text = prev_text + final_name + " | " + display_time + "\n"
+            self.scheduled_classes_label.setText(new_text)
+            self.scheduled_classes_label.adjustSize()
+            self.name.setText("")
+            self.time.setText("")
+            self.link.setText("")
+        except:
+            pass
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App()
