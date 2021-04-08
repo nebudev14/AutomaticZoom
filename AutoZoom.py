@@ -1,18 +1,12 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QLabel
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot, QObject, QThread, pyqtSignal
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 import webbrowser
 import schedule
 import time
 import sys
-
-def open_class(url):
-    webbrowser.register('chrome', None, webbrowser.BackgroundBrowser("C://Program Files (x86)//Google//Chrome//Application//chrome.exe"))
-    webbrowser.get('chrome').open(url)
-
-
-schedule.every().day.at("16:50").do(open_class, 'https://us02web.zoom.us/j/87540413095?pwd=NUg1a3c4MlRHZ1VXREpRcmt2WWZDdz09')
 
 # thread running all pending scheduled classes
 class Worker(QObject):
@@ -21,15 +15,26 @@ class Worker(QObject):
             schedule.run_pending()
             time.sleep(1)
 
-    
+class boxSelect(QComboBox):
+    def __init__(self, parent=None):
+        super(boxSelect, self).__init__(parent)
+
+class zoomClass():
+    def __init__(self, name, link, time):
+        self.name = name
+        self.link = link
+        self.time = time
+
+
 class App(QWidget):
     def __init__(self):
         super().__init__()
         self.title = 'AutoZoom'
         self.left = 10
         self.top = 10
-        self.width = 640
-        self.height = 480
+        self.width = 700
+        self.height = 500
+        self.classes = []
         self.initUI()
         self.schedule_thread()
 
@@ -62,6 +67,8 @@ class App(QWidget):
         button.move(20, 220)
         button.clicked.connect(self.on_click)
 
+        self.UIComponents()
+
         self.show()
 
     # connecting GUI to worker thread
@@ -71,18 +78,53 @@ class App(QWidget):
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.thread.start()
+    def UIComponents(self):
+        self.combo_box = boxSelect(self)
+        self.combo_box.setGeometry(200, 150, 50, 30)
+        self.combo_box.move(310, 105)
+        time = ["AM", "PM"]
+        self.combo_box.addItems(time)
 
     # opens class meeting link
-    def open_class(url):
+    def open_class(self, url):
         webbrowser.register('chrome', None, webbrowser.BackgroundBrowser("C://Program Files (x86)//Google//Chrome//Application//chrome.exe"))
         webbrowser.get('chrome').open(url)
 
     @pyqtSlot()
     def on_click(self):
+        final_name = self.name.text() # name of class that gets added to schedule
+        final_link = self.link.text() # zoom/google meets link of class that gets added to schedule
+        class_time = str(self.combo_box.currentText()) # morning or afternoon (AM or PM)
+        time_num = "" # time of class that gets added to schedule
+
+        time_text = self.time.text() # gets raw time 
+        if len(self.time.text()) == 4: # adds a 0 at the beginning of the time if it only has 3 digits (1:40 becomes 01:40)
+            time_text = "0" + time_text
+        first_digits = time_text[0] + time_text[1] # first two digits of time
+        last_digits = time_text[-2] + time_text[-1]  # last two digits of time
+
+        if class_time == "PM": # adds 12 hours to selected time if class starts in the afternoon
+            if first_digits == "12":
+                time_num = first_digits + ":" + last_digits
+            else:
+                new_first_digits = str(int(first_digits) + 12)
+                time_num = new_first_digits + ":" + last_digits
+        else:
+            # sets 12 AM to 00:00 AM
+            if first_digits == "12":
+                first_digits = "00"
+            time_num = first_digits + ":" + last_digits
+        
+        print(final_name)
+        print(final_link)
+        print(time_num)
+        schedule.every().day.at(time_num).do(self.open_class, final_link)
+        self.classes.append(zoomClass(final_name, final_link, time_num))
+        print(self.classes)
         self.name.setText("")
         self.time.setText("")
         self.link.setText("")
-
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App()
