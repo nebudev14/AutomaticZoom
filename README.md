@@ -10,4 +10,4 @@ Automatically opens your zoom meetings/google meets at specific times.
 Run the script, and enter in the name of the class, the time that class starts, and the zoom/google meet link for that class.
 A list of your scheduled classes and their start times will be displayed on the right.
 
-![alt text](https://github.com/NebuDev14/AutomaticZoom/blob/main/demo_image.png?raw=true)
+![Demo image of AutoZoom](https://github.com/NebuDev14/AutomaticZoom/blob/main/demo_image.PNG)
